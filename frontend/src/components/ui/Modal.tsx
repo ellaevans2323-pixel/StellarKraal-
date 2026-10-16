@@ -22,6 +22,11 @@ interface ModalProps {
   size?: ModalSize;
   /** Element id for aria-labelledby — auto-generated if omitted */
   titleId?: string;
+  /**
+   * ARIA role override. Defaults to `"dialog"`.
+   * Pass `"alertdialog"` for destructive confirmation dialogs (#1243).
+   */
+  role?: string;
 }
 
 export default function Modal({
@@ -32,6 +37,7 @@ export default function Modal({
   footer,
   size = "md",
   titleId = "modal-title",
+  role,
 }: ModalProps) {
   const triggerRef = useRef<Element | null>(null);
 
@@ -69,7 +75,7 @@ export default function Modal({
           "animate-modal-backdrop",
         ].join(" ")}
         aria-modal="true"
-        role="dialog"
+        role={role ?? "dialog"}
         aria-labelledby={titleId}
         // Backdrop click
         onMouseDown={(e) => {

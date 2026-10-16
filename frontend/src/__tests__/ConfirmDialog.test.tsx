@@ -10,6 +10,7 @@
  */
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import ConfirmDialog from "../components/ConfirmDialog";
 
 // focus-trap-react needs a working DOM — mock it so tests don't need jsdom full setup
@@ -141,5 +142,134 @@ describe("ConfirmDialog — closed state", () => {
   it("renders nothing when open=false", () => {
     const { container } = render(<ConfirmDialog {...baseProps} open={false} />);
     expect(container.firstChild).toBeNull();
+  });
+});
+
+/* ── #1243: action details ─────────────────────────────────────────────────── */
+describe("ConfirmDialog — action details", () => {
+  it("renders details when the details prop is provided", () => {
+    render(
+      <ConfirmDialog
+        {...baseProps}
+        details={[
+          { label: "Loan ID", value: "loan-001" },
+          { label: "Amount", value: "150 XLM" },
+        ]}
+      />,
+    );
+    expect(screen.getByText("Loan ID:")).toBeTruthy();
+    expect(screen.getByText("loan-001")).toBeTruthy();
+    expect(screen.getByText("Amount:")).toBeTruthy();
+    expect(screen.getByText("150 XLM")).toBeTruthy();
+  });
+
+  it("does not render the details <dl> when details is undefined", () => {
+    const { container } = render(<ConfirmDialog {...baseProps} />);
+    expect(container.querySelector("dl")).toBeNull();
+  });
+
+  it("does not render the details <dl> when details is an empty array", () => {
+    const { container } = render(<ConfirmDialog {...baseProps} details={[]} />);
+    expect(container.querySelector("dl")).toBeNull();
+  });
+});
+
+/* ── #1243: confirmationId (loan ID typing) ──────────────────────────────── */
+describe("ConfirmDialog — confirmationId", () => {
+  it("renders a text input when confirmationId is set", () => {
+    render(
+      <ConfirmDialog
+        {...baseProps}
+        variant="destructive"
+        confirmationId="loan-001"
+      />,
+    );
+    expect(screen.getByRole("textbox")).toBeTruthy();
+  });
+
+  it("confirm button is disabled before the correct ID is typed", () => {
+    render(
+      <ConfirmDialog
+        {...baseProps}
+        variant="destructive"
+        confirmLabel="Liquidate"
+        confirmationId="loan-001"
+      />,
+    );
+    const confirmBtn = screen.getByRole("button", { name: /liquidate/i });
+    expect(confirmBtn).toHaveProperty("disabled", true);
+  });
+
+  it("confirm button becomes enabled when the exact ID is typed", async () => {
+    const user = userEvent.setup();
+    render(
+      <ConfirmDialog
+        {...baseProps}
+        variant="destructive"
+        confirmLabel="Liquidate"
+        confirmationId="loan-001"
+      />,
+    );
+    await user.type(screen.getByRole("textbox"), "loan-001");
+    const confirmBtn = screen.getByRole("button", { name: /liquidate/i });
+    expect(confirmBtn).toHaveProperty("disabled", false);
+  });
+
+  it("does not call onConfirm when wrong ID is typed and button clicked", () => {
+    render(
+      <ConfirmDialog
+        {...baseProps}
+        variant="destructive"
+        confirmLabel="Liquidate"
+        confirmationId="loan-001"
+      />,
+    );
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "wrong-id" } });
+    fireEvent.click(screen.getByRole("button", { name: /liquidate/i }));
+    expect(baseProps.onConfirm).not.toHaveBeenCalled();
+  });
+
+  it("calls onConfirm when correct ID is typed and confirm clicked", async () => {
+    const user = userEvent.setup();
+    render(
+      <ConfirmDialog
+        {...baseProps}
+        variant="destructive"
+        confirmLabel="Liquidate"
+        confirmationId="loan-001"
+      />,
+    );
+    await user.type(screen.getByRole("textbox"), "loan-001");
+    await user.click(screen.getByRole("button", { name: /liquidate/i }));
+    expect(baseProps.onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it("clears the input when cancel is clicked", async () => {
+    const user = userEvent.setup();
+    render(
+      <ConfirmDialog
+        {...baseProps}
+        variant="destructive"
+        confirmationId="loan-001"
+      />,
+    );
+    const input = screen.getByRole("textbox");
+    await user.type(input, "loan-001");
+    expect((input as HTMLInputElement).value).toBe("loan-001");
+    await user.click(screen.getByRole("button", { name: /^cancel$/i }));
+    expect(baseProps.onCancel).toHaveBeenCalledTimes(1);
+  });
+});
+
+/* ── #1243: role=alertdialog ─────────────────────────────────────────────── */
+describe("ConfirmDialog — ARIA role", () => {
+  it("uses role=alertdialog for destructive variant", () => {
+    render(<ConfirmDialog {...baseProps} variant="destructive" />);
+    expect(screen.getByRole("alertdialog")).toBeTruthy();
+  });
+
+  it("uses role=dialog for default variant", () => {
+    render(<ConfirmDialog {...baseProps} variant="default" />);
+    expect(screen.getByRole("dialog")).toBeTruthy();
   });
 });

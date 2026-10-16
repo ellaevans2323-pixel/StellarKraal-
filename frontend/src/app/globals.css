@@ -724,3 +724,223 @@ body {
   background-image: radial-gradient(var(--token-border) 1px, transparent 1px);
   background-size: 20px 20px;
 }
+
+/* ── Print / Save as PDF layout (#1247) ──────────────────────────────────────
+   Optimised layout for the loan detail page when the browser's print
+   dialog is triggered (including "Save as PDF").
+
+   Rules:
+   • Navigation, filters, action buttons, and interactive widgets are hidden.
+   • The loan data table, collateral details, and health factor are preserved.
+   • StellarKraal branding (logo text + footer) is injected via ::before/::after.
+   • Forced black-on-white colours so the printout looks clean on any printer.
+   • Tested in Chrome and Firefox print preview.
+*/
+@media print {
+  /* ── Hide non-print elements ── */
+  nav,
+  header,
+  .print\:hidden,
+  [data-print="hidden"],
+  [role="toolbar"],
+  .mobile-bottom-nav,
+  .fixed,
+  button,
+  [role="button"],
+  footer {
+    display: none !important;
+  }
+
+  /* ── Page setup ── */
+  @page {
+    size: A4 portrait;
+    margin: 20mm 15mm;
+  }
+
+  /* ── Reset body for print ── */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  /* ── Container resets ── */
+  .print\:block,
+  [data-print="block"] {
+    display: block !important;
+  }
+
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* ── Cards / panels ── */
+  .shadow,
+  .shadow-md,
+  .shadow-lg {
+    box-shadow: none !important;
+  }
+
+  .rounded-2xl,
+  .rounded-xl,
+  .rounded-lg {
+    border-radius: 4px !important;
+  }
+
+  /* ── Prevent orphaned headings ── */
+  h1, h2, h3 {
+    page-break-after: avoid;
+    color: black !important;
+  }
+
+  /* ── Print header: StellarKraal logo ── */
+  .print-header::before {
+    content: 'StellarKraal — Livestock Loan Agreement';
+    display: block;
+    font-size: 16pt;
+    font-weight: 700;
+    margin-bottom: 8mm;
+    padding-bottom: 4mm;
+    border-bottom: 2px solid #333;
+    color: black;
+  }
+
+  /* ── Print footer: printed date ── */
+  .print-header::after {
+    content: 'Printed: ' attr(data-print-date);
+    display: block;
+    font-size: 9pt;
+    color: #555;
+    margin-top: 2mm;
+  }
+
+  /* ── Force colours for data tables ── */
+  dl dt, dl dd, p, span {
+    color: black !important;
+  }
+
+  /* ── Health factor gauge: hide animated SVG, show text value ── */
+  [data-testid="health-factor-section"] canvas,
+  [data-testid="health-factor-section"] svg {
+    display: none;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* ── Print / Save as PDF layout (#1247) ──────────────────────────────────────
+   Optimised layout for the loan detail page when the browser's print dialog
+   is triggered (including "Save as PDF").
+
+   Rules:
+   • Navigation, filters, and action buttons are hidden.
+   • Loan ID, borrower address, collateral details, amount, dates, status are kept.
+   • StellarKraal logo and date are injected via CSS ::before/::after on .print-header.
+   • Forced black-on-white colours for clean output on any printer.
+   • Tested in Chrome and Firefox print preview.
+*/
+@media print {
+  /* ── Hide non-print elements ── */
+  nav,
+  header,
+  .print\:hidden,
+  [data-print="hidden"],
+  [role="toolbar"],
+  .mobile-bottom-nav,
+  .fixed,
+  button,
+  [role="button"],
+  footer,
+  [data-testid="health-factor-section"] canvas {
+    display: none !important;
+  }
+
+  /* ── Page setup ── */
+  @page {
+    size: A4 portrait;
+    margin: 20mm 15mm;
+  }
+
+  /* ── Reset body ── */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+    line-height: 1.5;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ── Show print-only elements ── */
+  .print-only {
+    display: block !important;
+  }
+
+  /* ── Container resets ── */
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* ── Remove decorative shadows and heavy radii ── */
+  .shadow,
+  .shadow-md,
+  .shadow-lg {
+    box-shadow: none !important;
+  }
+
+  .rounded-2xl,
+  .rounded-xl,
+  .rounded-lg {
+    border-radius: 4px !important;
+    border: 1px solid #ccc !important;
+  }
+
+  /* ── Prevent orphaned headings ── */
+  h1, h2, h3 {
+    page-break-after: avoid;
+    color: black !important;
+  }
+
+  /* ── Print header: StellarKraal branding injected before main content ── */
+  .print-header::before {
+    content: 'StellarKraal — Livestock Loan Agreement';
+    display: block;
+    font-size: 16pt;
+    font-weight: 700;
+    margin-bottom: 6mm;
+    padding-bottom: 3mm;
+    border-bottom: 2px solid #333;
+    color: black;
+  }
+
+  /* ── Print footer: printed date from data attribute ── */
+  .print-header::after {
+    content: 'Printed: ' attr(data-print-date);
+    display: block;
+    font-size: 9pt;
+    color: #555;
+    margin-top: 2mm;
+    margin-bottom: 6mm;
+  }
+
+  /* ── Force all text to black ── */
+  dl dt, dl dd, p, span, li, td, th {
+    color: black !important;
+  }
+
+  /* ── Health factor gauge: hide SVG animation, show text fallback ── */
+  [data-testid="health-factor-section"] svg {
+    display: none;
+  }
+
+  .health-factor-print-value {
+    display: block !important;
+  }
+}

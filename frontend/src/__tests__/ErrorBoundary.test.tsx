@@ -53,6 +53,58 @@ describe("ErrorBoundary", () => {
     expect(spy).toHaveBeenCalled();
   });
 
+  // #1245: enhanced fallback UI
+  it("renders role=alert on the fallback container for screen readers", () => {
+    render(
+      <ErrorBoundary>
+        <Bomb shouldThrow={true} />
+      </ErrorBoundary>,
+    );
+    expect(screen.getByRole("alert")).toBeTruthy();
+  });
+
+  it("calls onError callback when a child throws", () => {
+    const onError = jest.fn();
+    render(
+      <ErrorBoundary onError={onError}>
+        <Bomb shouldThrow={true} />
+      </ErrorBoundary>,
+    );
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ componentStack: expect.any(String) }),
+    );
+  });
+
+  it("renders the error illustration SVG", () => {
+    render(
+      <ErrorBoundary>
+        <Bomb shouldThrow={true} />
+      </ErrorBoundary>,
+    );
+    expect(screen.getByRole("img", { name: /illustration/i })).toBeTruthy();
+  });
+
+  it("primary reload button is labelled 'Reload page'", () => {
+    render(
+      <ErrorBoundary>
+        <Bomb shouldThrow={true} />
+      </ErrorBoundary>,
+    );
+    expect(screen.getByRole("button", { name: /reload page/i })).toBeTruthy();
+  });
+
+  it("logs the error to console regardless of NODE_ENV", () => {
+    const spy = console.error as jest.Mock;
+    render(
+      <ErrorBoundary>
+        <Bomb shouldThrow={true} />
+      </ErrorBoundary>,
+    );
+    expect(spy).toHaveBeenCalled();
+  });
+
   // #522: retry support used to wrap individual LoanWizard steps
   describe("onRetry", () => {
     it("shows a retry button instead of Reload when onRetry is provided", () => {

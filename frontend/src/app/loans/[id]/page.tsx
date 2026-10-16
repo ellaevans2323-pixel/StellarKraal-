@@ -8,6 +8,8 @@ import DetailSkeleton from '@/components/DetailSkeleton';
 import HealthGauge, { SkeletonHealthGauge } from '@/components/HealthGauge';
 import HealthFactorAlert from '@/components/HealthFactorAlert';
 import { useHealthFactor } from '@/hooks/useHealthFactor';
+import PrintButton from '@/components/PrintButton';
+import PrintButton from '@/components/PrintButton';
 
 // Heavy component — loaded lazily to reduce initial JS bundle (#1070)
 const LoanRepaymentCalculator = dynamic(() => import('@/components/LoanRepaymentCalculator'), {
@@ -265,18 +267,22 @@ export default function LoanDetailPage() {
 
   return (
     <main
-      className={`mx-auto max-w-2xl px-4 py-10 ${loan.status === 'active' ? 'pb-44 sm:pb-10' : ''}`}
+      className={`mx-auto max-w-2xl px-4 py-10 print-header ${loan.status === 'active' ? 'pb-44 sm:pb-10' : ''}`}
+      data-print-date={new Date().toLocaleDateString()}
     >
-      <Link href="/loans" className="text-brown/60 hover:text-brown text-sm mb-6 inline-block">
-        ← Back to Loans
-      </Link>
+      <div className="flex items-center justify-between mb-6 print:hidden">
+        <Link href="/loans" className="text-brown/60 hover:text-brown text-sm inline-block">
+          ← Back to Loans
+        </Link>
+        <PrintButton />
+      </div>
 
       <div className="bg-white rounded-2xl p-6 shadow mb-6">
         <h1 className="text-2xl font-bold text-brown mb-4">Loan #{loan.id}</h1>
         <div className="flex items-center gap-2 mb-4">
           <span className="text-brown/50 text-sm">Loan ID</span>
           <button
-            onClick={() => void copyId(loan.id)}
+            onClick={() => void copyId()}
             aria-label={copied ? 'Loan ID copied' : 'Copy loan ID'}
             title={copied ? 'Copied!' : 'Copy ID'}
             className="shrink-0 text-brown/50 hover:text-brown transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brown rounded"
