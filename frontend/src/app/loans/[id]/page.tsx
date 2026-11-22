@@ -505,7 +505,11 @@ export default function LoanDetailPage() {
               {/* Warning / critical alert banners */}
               {hfHasFetched && healthFactor !== null && (
                 <div className="mt-4">
-                  <HealthFactorAlert healthFactor={healthFactor} />
+                  <HealthFactorAlert
+                    healthFactor={healthFactor}
+                    loanId={loan.id}
+                    outstanding={loan.outstanding ?? loan.amount}
+                  />
                 </div>
               )}
             </div>

@@ -15,6 +15,8 @@ import NetworkMismatchBanner from '@/components/NetworkMismatchBanner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 // i18n — Issue #1207: Kiswahili locale support
 import { I18nProvider } from '@/context/I18nContext';
+// RTL layout sync — Issue #1524
+import HtmlDirSync from '@/components/HtmlDirSync';
 // Wallet auth context — Issue #1208
 import { WalletProvider } from '@/context/WalletContext';
 // Route protection redirect-back — Issue #1500
@@ -287,6 +289,8 @@ export default function RootLayout({
         <ThemeProvider>
           <KeyboardShortcutsProvider>
             <I18nProvider>
+            {/* Sync <html dir> and <html lang> with active locale — Issue #1524 */}
+            <HtmlDirSync />
             <WalletProvider>
             <ToastProvider>
             <SWRErrorToastConfig>
@@ -364,6 +368,36 @@ export default function RootLayout({
                 {/* Global error boundary — Issue #1399 */}
                 <ErrorBoundary fullPage>{children}</ErrorBoundary>
               </main>
+              {/*
+               * Site footer landmark — Issue #1461
+               * Uses the semantic <footer> element so screen readers expose it
+               * as a "contentinfo" landmark, allowing keyboard navigation via
+               * the landmarks list (NVDA: Insert+F7 / VoiceOver: VO+U).
+               */}
+              <footer
+                aria-label="Site information"
+                className="no-print border-t px-6 py-4 text-sm"
+                style={{
+                  borderColor: 'var(--color-nav-border)',
+                  backgroundColor: 'var(--color-nav-bg)',
+                  color: 'var(--color-text-muted)',
+                }}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span>© {new Date().getFullYear()} StellarKraal. Built on Stellar.</span>
+                  <nav aria-label="Footer navigation" className="flex gap-4">
+                    <Link href="/help/faq" className="hover:opacity-80 transition" style={{ color: 'var(--color-text-muted)' }}>FAQ</Link>
+                    <Link href="/settings" className="hover:opacity-80 transition" style={{ color: 'var(--color-text-muted)' }}>Settings</Link>
+                  </nav>
+                </div>
+              </footer>
+              {/*
+               * Global ARIA live region — Issue #1461
+               * Announced to screen readers whenever loan status changes,
+               * notifications arrive, or other dynamic updates occur.
+               * Components write to this region via the useLiveRegion hook.
+               */}
+              <LiveRegion />
               <ToastContainer />
               <WhatsNewProvider />
             </SWRErrorToastConfig>
